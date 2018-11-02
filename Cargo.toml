@@ -1,6 +1,8 @@
 [package]
 name = "rusty-bus"
 version = "0.0.1"
-authors = ["ufoscout <ufoscout@gmail.com>"]
+license = "MIT"
+authors = ["Francesco Cina <ufoscout@gmail.com>"]
+description = "Distributed next generation event bus."
 
 [dependencies]

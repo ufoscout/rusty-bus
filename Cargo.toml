@@ -1,8 +1,6 @@
-[package]
-name = "rusty-bus"
-version = "0.0.1"
-license = "MIT"
-authors = ["Francesco Cina <ufoscout@gmail.com>"]
-description = "Distributed next generation event bus."
+[workspace]
 
-[dependencies]
+members = [
+   "core",
+]
+

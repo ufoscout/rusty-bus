@@ -1,0 +1,12 @@
+[package]
+edition = "2018"
+name = "rusty-bus"
+version = "0.0.1"
+license = "MIT"
+authors = ["Francesco Cina <ufoscout@gmail.com>"]
+description = "Distributed next generation event bus."
+
+[dependencies]
+tokio = { version = "0.1", features = ["async-await-preview"] }
+futures = "0.1"
+tokio-async-await = "0.1"

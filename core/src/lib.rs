@@ -20,7 +20,6 @@ pub struct Rusty {
 }
 
 impl Rusty {
-
     pub fn new() -> Rusty {
         Default::default()
     }
@@ -36,13 +35,13 @@ impl Rusty {
     }
     */
 
-    pub fn receive<T: Any + Debug + Send + 'static>(&self, address: &'static str) -> mpsc::Receiver<T> {
+    pub fn consumer<T: Any + Debug + Send + 'static>(&self, address: &'static str) -> mpsc::Receiver<T> {
         let (sender, receiver) = mpsc::channel::<T>(16);
         self.inner.write().expect("receive - should lock write").insert(address.to_owned(), Box::new(sender));
         receiver
     }
 
-    pub fn publish<T: Any + Debug + Send + 'static>(&self, address: &'static str) -> mpsc::Sender<T> {
+    pub fn producer<T: Any + Debug + Send + 'static>(&self, address: &'static str) -> mpsc::Sender<T> {
         let (sender, receiver) = mpsc::channel::<T>(16);
 
         println!("create new sender");
@@ -52,7 +51,18 @@ impl Rusty {
             println!("Received message: [{:?}]", msg);
 
             match cloned_inner.read().expect("publish - should lock on read").get(address) {
-                Some(_) => println!("Consumer found"),
+                Some(consumer) => {
+                    println!("Consumer found...");
+                    if let Some(c) = consumer.downcast_ref::<mpsc::Sender<T>>() {
+                        println!("... and it's the correct consumer!!");
+                        //println!("[{:?}]", &c);
+                            let clone = c.clone();
+                            clone.send(msg).wait().expect("Unable to send");
+                            thread::sleep(time::Duration::from_millis(200));
+                    } else {
+                        println!("...but not the correct consumer...");
+                    }
+                },
                 None => println!("No consumers found")
             }
 
@@ -61,7 +71,6 @@ impl Rusty {
 
         sender
     }
-
 }
 
 
@@ -71,15 +80,33 @@ mod test {
 
     #[test]
     fn should_send_hello_msg() {
-
         tokio::run_async(async {
             let rusty = Rusty::new();
 
-            let publish = rusty.publish("address1");
+            let publish = rusty.producer("address1");
 
             await!(publish.clone().send("Hello1".to_owned()));
             await!(publish.clone().send("Hello2".to_owned()));
         });
     }
+
+    #[test]
+    fn should_send_receive_msg() {
+        tokio::run_async(async {
+            let rusty = Rusty::new();
+
+            let consumer = rusty.consumer::<String>("address1");
+            tokio::spawn(consumer.for_each(|msg| {
+                println!("'address1' consumer received msg: [{}]", &msg);
+                Ok(())
+            }));
+
+            let producer = rusty.producer("address1");
+
+            await!(producer.clone().send("Hello1".to_owned()));
+            await!(producer.clone().send("Hello2".to_owned()));
+        });
+    }
+
 
 }

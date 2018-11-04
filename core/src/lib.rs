@@ -5,6 +5,9 @@ extern crate tokio;
 
 use futures::prelude::*;
 use futures::sync::mpsc;
+
+//use std::future::
+
 use std::any::Any;
 use std::fmt::Debug;
 use std::{thread, time};
@@ -12,7 +15,7 @@ use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 
 #[derive(Default)]
-struct Rusty {
+pub struct Rusty {
     inner: Arc<RwLock<HashMap<String, Box<Any + Send + Sync>>>>
 }
 
@@ -61,42 +64,22 @@ impl Rusty {
 
 }
 
-fn send_hello_msg() {
-
-
-    tokio::run_async(async {
-        let rusty = Rusty::new();
-
-        let publish = rusty.publish("address1");
-
-        await!(publish.clone().send("Hello1".to_owned()));
-        await!(publish.clone().send("Hello2".to_owned()));
-
-    });
-
-
-}
-
-
-fn say_hello() {
-    // And we are async...
-    tokio::run_async(async {
-        println!("Hello");
-    });
-}
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    //#[test]
-    fn should_print_hello() {
-        say_hello();
-    }
-
     #[test]
     fn should_send_hello_msg() {
-        send_hello_msg();
+
+        tokio::run_async(async {
+            let rusty = Rusty::new();
+
+            let publish = rusty.publish("address1");
+
+            await!(publish.clone().send("Hello1".to_owned()));
+            await!(publish.clone().send("Hello2".to_owned()));
+        });
     }
 
 }

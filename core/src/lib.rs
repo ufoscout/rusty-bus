@@ -57,6 +57,8 @@ impl Rusty {
                         println!("... and it's the correct consumer!!");
                         //println!("[{:?}]", &c);
                             let clone = c.clone();
+
+                            // Todo: should not wait here but "await!"
                             clone.send(msg).wait().expect("Unable to send");
                             thread::sleep(time::Duration::from_millis(200));
                     } else {
